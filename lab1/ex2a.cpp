@@ -1,0 +1,21 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+long long exp(int n, int x){
+
+  if(n==0 || x==1){ return 1;}
+  else if (n%2 == 0){return exp(x * x, n/2);}
+  else {return x * exp(x * x, (n-1)/2);}
+
+  return 0;
+}
+
+
+int main(){
+
+  cout<<exp(2,54)<<endl;
+
+ return 0;
+}

@@ -1,0 +1,60 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+
+vector<string> gray(int n){// returns a vector string
+ 
+  vector<string> temp;
+  vector<string> temp2; 
+
+  if(n==1){
+    temp.push_back("0");
+    temp.push_back("1");
+    return temp;
+  }
+  else{
+    temp = gray(n-1);// temp is for the first half of the future concatination
+    temp2= gray(n-1);// this is going to be the reflected side
+
+    for(int i=0; i<=temp.size(); i++){// switches the 0's to 1's and vice versa 
+      if(temp[i]=="1"){
+	temp[i]= "0";
+	cout<<temp[i]<<endl;///
+      }
+      else if(temp[i]== "0"){
+        temp[i]="1";
+	cout<<temp[i]<<endl;///
+      }
+    }
+    for(int i=0; i<=temp2.size(); i++){ // adds 0's to first half to increase bit size
+
+      temp2[i]= '0' + temp[i];
+      cout<<temp2[i]<<endl;///
+
+      cout<<temp2[i]<<endl;///
+    }  
+    for(int i=0; i<=temp.size(); i++){// adds 1's to second half to increase bit size
+      temp[i]= '1' + temp[i];
+      cout<<temp[i]<<endl;///
+    }
+
+    for(int i =0; i<=temp2.size(); i++){//concatinates both temps to create gray code
+      temp2.push_back(temp[i]);
+    }
+    for(int i=0; i<=temp2.size(); i++){
+      cout<<temp2[i]<<endl;
+    }
+  }
+  return temp2;
+}
+
+
+////////////////////////////////////////////////  
+int main(){
+
+   gray(2);
+
+  return 0;
+}

@@ -1,0 +1,188 @@
+//CoryBekker
+// Cs315 lab 3
+
+#include "EasyBMP.h"
+#include "EasyBMP.cpp"
+#include <iostream>
+using namespace std;
+
+void scale_down(BMP& I, BMP& O);
+void tile(BMP& I, BMP& O, BMP& K);//======
+
+int main(int argc, char* argv[]){
+
+  BMP image;// used for scale_down
+  BMP output;// used for scale_down
+  BMP Final;// The final picture 
+  BMP forth; //=======
+
+  image.ReadFromFile(argv[1]);
+  Final.ReadFromFile(argv[1]);
+
+  if(image.TellWidth() * image.TellHeight()%2 == 1)
+    {
+      cout<<"picture is in wrong format, needs to be a square"<<endl;
+      return 0;
+    }
+   
+  scale_down(image,output);
+  forth.SetSize(image.TellWidth(),image.TellHeight());//===== 
+
+  RangedPixelToPixelCopy(image, 0, image.TellWidth(), image.TellHeight(), 0,Final, 0, Final.TellHeight()/2);
+ 
+  tile(image,output,forth);//=========
+
+  RangedPixelToPixelCopy(forth, 0, forth.TellWidth(), forth.TellHeight(), 0,Final, Final.TellWidth()/2, 0);
+  RangedPixelToPixelCopy(forth, 0, forth.TellWidth()/2, forth.TellHeight(), 0,Final, Final.TellWidth()/4, 0);
+  RangedPixelToPixelCopy(forth, 0, forth.TellWidth()/2, forth.TellHeight(), 0,Final, 0, 0);
+  RangedPixelToPixelCopy(forth, 0, forth.TellWidth(), forth.TellHeight(),forth.TellHeight()/2,Final, Final.TellWidth()/2, Final.TellHeight()/2);
+  RangedPixelToPixelCopy(forth, 0, forth.TellWidth(), forth.TellHeight(),forth.TellHeight()/2,Final, Final.TellWidth()/2, 3*Final.TellHeight()/4);
+  
+  Final.WriteToFile(argv[2]);
+  
+  return 0;
+}
+//=-------------------------------------------------------------------------------------------------------------------
+void scale_down(BMP& I, BMP& O){
+
+  O.SetSize(I.TellWidth()/2, I.TellHeight()/2);
+  
+  for(int i = 0; i < I.TellWidth()/2; i++)
+    {
+      for(int j = 0; j < I.TellHeight()/2; j++)
+	{
+	  int redavg=((I(2*i,2*j)->Red) +(I(2*i, 2*j + 1)->Red)+(I(2*i+1,2*j)->Red) +(I(2*i+1,2*j+1)->Red))/4;
+	  O(i,j)->Red = redavg;
+	  int gravg=((I(2*i,2*j)->Green) +(I(2*i, 2*j + 1)->Green)+(I(2*i+1,2*j)->Green) +(I(2*i+1,2*j+1)->Green))/4;
+	  O(i,j)->Green = gravg;
+	  int blavg=((I(2*i,2*j)->Blue) +(I(2*i, 2*j + 1)->Blue)+(I(2*i+1,2*j)->Blue) +(I(2*i+1,2*j+1)->Blue))/4;
+	  O(i,j)->Blue =blavg;
+	}
+    }
+
+  I.SetSize(I.TellWidth()/2, I.TellHeight()/2); // this changes the original to the same as output so that way
+                                                // it can be scaled down again   
+  for(int i = 0; i < I.TellWidth(); i++)
+    {
+      for(int j = 0; j < I.TellHeight(); j++)
+        {
+	  I(i,j)->Red = O(i,j)->Red;
+	  I(i,j)->Green = O(i,j)->Green;
+	  I(i,j)->Blue =O(i,j)->Blue;
+        }
+    }
+}
+//=-------------------------------------------------------------------------------------------------------------------
+void tile(BMP& I, BMP& O,BMP& K){
+  
+  if(I.TellWidth()>5)
+    {
+      scale_down(I,O);
+
+      for(int i = 0; i < K.TellWidth()-O.TellWidth()*2; i = i+O.TellWidth())
+	{
+	  RangedPixelToPixelCopy(O, 0, O.TellWidth(), O.TellHeight(), 0, K, i, O.TellHeight());
+	}
+
+      for(int i = K.TellHeight()-O.TellHeight(); i > O.TellHeight(); i = i-O.TellHeight())
+        {
+          RangedPixelToPixelCopy(O, 0, O.TellWidth(), O.TellHeight(), 0, K, K.TellWidth()- O.TellWidth()*2, i);
+        }
+
+      tile(I,O,K);//========= 
+    }
+}
+//-------------------------------------------------------------------------------------------------------------------
+
+//RangedPixelToPixelCopy(I, 0, I.TellWidth(), I.TellHeight(), 0, K, K.TellWidth(), 0);
+//RangedPixelToPixelCopy(I, 0, I.TellWidth()/2, 0, I.TellHeight(), K, 0, 0);
+//RangedPixelToPixelCopy(I, 0, I.TellWidth()/2-1, 0, I.TellHeight(), K, K.TellWidth()/4, 0);
+//RangedPixelToPixelCopy(I, 0, I.TellWidth(), I.TellHeight()/2, I.TellHeight(), K, K.TellWidth()/2, 3*K.TellWidth()/4);
+//RangedPixelToPixelCopy(I, 0, I.TellWidth(), I.TellHeight()/2, I.TellHeight(), K, K.TellWidth()/2, K.TellWidth()/2);
+
+// for(int i =  K.TellHeight(); i > O.TellHeight()*2; i = i-O.TellHeight())
+//        {
+//          RangedPixelToPixelCopy(O, 0, O.TellWidth(), O.TellHeight(), 0, K, O.TellWidth(),i);
+//        }
+
+//void tile(BMP& input, BMP& output)
+//{
+//  BMP temp1;
+//  BMP temp2;
+//  int width= input.TellWidth();
+//  output.SetSize(width,width);
+
+//  if(width > 1)//tiles image
+//    {
+//      scale_down(input,temp2);
+//      tile(temp2,temp1);
+//RangedPixelToPixelCopy(temp1 ,0 , temp1.TellWidth() ,0,temp1.TellHeight() ,output,width/2,0);
+//RangedPixelToPixelCopy(temp1 ,0 , temp1.TellWidth()/2 ,0,temp1.TellHeight() ,output,0,0);
+//RangedPixelToPixelCopy(temp1 ,0 , temp1.TellWidth()/2-1 ,0,temp1.TellHeight() ,output,width/4,0);
+//RangedPixelToPixelCopy(temp1 ,0 , temp1.TellWidth(),temp1.TellHeight()/2,temp1.TellHeight(),output,width/2,3*width/4);
+//RangedPixelToPixelCopy(temp1 ,0 , temp1.TellWidth(),temp1.TellHeight()/2,temp1.TellHeight(),output,width/2,width/2);
+//RangedPixelToPixelCopy(temp2 ,0 , width,0,width,output,0,width/2);
+
+//void PixelToPixelCopy( BMP& From, int FromX, int FromY, BMP& To, int ToX, int ToY)
+
+//This function copies the (FromX,FromY) pixel of the BMP object From to pixel (ToX,ToY) of the
+//BMP object To.
+
+
+//for(int i = 0; i < K.TellWidth()-I.TellWidth(); i+I.TellWidth())
+  // {
+    // for(int j = 0; j < K.TellHeight()-I.TellHeight(); j+I.TellHeight())
+      // {
+	//	RangedPixelToPixelCopy(I, 0, I.TellWidth(), I.TellHeight(), 0, K, i, j);
+	
+
+/* using namespace std;int main( int argc, char* argv[] )
+{
+  BMP Background;// this is an bmp object
+  Background.ReadFromFile(argv[1]);// reads in file
+  BMP Output; // creates another object that is used for an output
+  int picWidth = Background.TellWidth(); //gets width and height of picture
+  int picHeight = Background.TellHeight();
+  Output.SetSize(picWidth, picHeight);
+  Output.SetBitDepth(1); // this is where the compression happens
+  for (int i = 0; i < picWidth-1; ++i)
+    for (int j = 0; j < picHeight-1; ++j) {
+      Output(i,j)->Red = 0;// sets all colors two zero in the picture
+      Output(i,j)->Blue = 0;
+      Output(i,j)->Green = 0;
+    }
+  for (int i = 0; i < picWidth-1; ++i)
+    for (int j = 0; j < picHeight-1; ++j) {
+      int col = 0.1* Background(i, j)->Blue + 
+	0.6*Background(i,j)->Green +0.3* Background(i,j)->Red;
+      if (col > 127) { // if above this number set colores to black 
+	Output(i,j)->Red = 255;
+	Output(i,j)->Blue = 255;
+	Output(i,j)->Green = 255;
+      }
+    }
+  Output.WriteToFile(argv[2]);
+  return 0;
+}
+*/
+
+ //////////////////////////////////////////////////////////////////////////////
+/*  this UNFINISHED  code is supposed to make a checkard board
+using namespace std;
+int main( int argc, char* argv[] )
+{
+  BMP Background;// this is an bmp object
+  BMP Output; // creates another object that is used for an output
+  Backgroud.SetSize(256,256);
+
+  for (int i = 0; i < 256; i++)
+    for (int j = 0; j < 256; j++){
+      if(((i/32)%2 == 0 && (j/32)%2 == 0) || ((i/32)%2==1) && (j/32)%2==1){
+	Background(i,j)->Red = 255;
+	Background(i,j)->Blue = 0;
+	Background(i,j)->Green = 0;
+      }
+    }
+  Background.WriteToFile(argv[2]);
+  return 0;
+  }  */

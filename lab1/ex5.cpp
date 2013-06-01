@@ -1,0 +1,31 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+string f(int n){
+
+  if(n==1)return "01";
+
+  else{
+    string temp = f(n-1);// modified string  
+    string temp2 = f(n-1);
+      for(int i =0; i<= temp.length()-1; i++){
+	if(temp[i]== '1'){
+	  temp[i]='0'; 
+      }
+	else if(temp[i]= '0'){
+	  temp[i]='1';
+	}
+      }
+    return temp2+temp;
+  }
+}
+
+
+int main(){
+
+  for(int i =1; i<=6; i++){
+  cout<<f(i)<<endl;
+  }
+  return 0;
+}
